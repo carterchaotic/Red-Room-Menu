@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --surface3: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --text: #f0ede8;
+    --text2: #888880;
+    --text3: #555550;
+    --accent: #e8d5a3;
+    --accent2: #c4a96e;
+    --danger: #c0392b;
+    --success: #27ae60;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-serif: 'Playfair Display', serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── LOGIN ─── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    position: relative;
+  }
+  #login-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, #1a1508 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    z-index: 1;
+  }
+  .login-box h1 {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+    line-height: 1;
+  }
+  .login-box p {
+    color: var(--text2);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .field { margin-bottom: 1.2rem; }
+  .field label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 0.5rem;
+  }
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent2); }
+  .field input::placeholder { color: var(--text3); }
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 1px;
+    padding: 0.85rem;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:active { transform: scale(0.98); }
+  .login-error {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+    text-align: center;
+    display: none;
+  }
+
+  /* ─── ADMIN SHELL ─── */
+  #admin-screen { display: none; min-height: 100vh; }
+  .admin-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .admin-nav .brand {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+  }
+  .nav-tabs { display: flex; gap: 0; }
+  .nav-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0 1.2rem;
+    height: 58px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .btn-sm {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-sm:hover { color: var(--text); border-color: var(--border2); }
+  .btn-accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0a;
+  }
+  .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #0a0a0a; }
+  .btn-danger { border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+
+  .admin-body { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+  /* panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title span { color: var(--accent); }
+
+  /* ─── ITEMS PANEL ─── */
+  .items-toolbar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .items-toolbar select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+  .items-table { width: 100%; border-collapse: collapse; }
+  .items-table th {
+    text-align: left;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .items-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+  .items-table tr:hover td { background: var(--surface2); }
+  .item-img-preview {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: var(--surface3);
+    display: block;
+  }
+  .img-placeholder {
+    width: 48px;
+    height: 48px;
+    background: var(--surface3);
+    border: 1px dashed var(--border2);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+  .cat-badge {
+    display: inline-block;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 1px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    padding: 0.2rem 0.5rem;
+  }
+  .td-actions { display: flex; gap: 0.4rem; align-items: center; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+  }
+  .modal h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal .field input,
+  .modal .field select,
+  .modal .field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    padding: 0.7rem 0.9rem;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+  }
+  .modal .field textarea { min-height: 80px; }
+  .modal .field select { cursor: pointer; }
+  .modal .field input:focus,
+  .modal .field select:focus,
+  .modal .field textarea:focus { border-color: var(--accent2); }
+  .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .img-upload-area {
+    border: 1px dashed var(--border2);
+    border-radius: 2px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .img-upload-area:hover { border-color: var(--accent2); }
+  .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .img-upload-area p { color: var(--text2); font-size: 0.8rem; }
+  .img-upload-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 2px; margin: 0 auto 0.75rem; display: block; }
+
+  /* ─── CATEGORIES ─── */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .cat-card-name {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--text);
+  }
+  .cat-count { font-size: 0.7rem; color: var(--text3); margin-top: 0.2rem; }
+
+  /* ─── QR PANEL ─── */
+  .qr-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 640px) { .qr-layout { grid-template-columns: 1fr; } }
+  .qr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.5rem;
+  }
+  .qr-card h3 {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  #qr-display {
+    background: #fff;
+    padding: 1rem;
+    display: inline-block;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+  .qr-options { display: flex; flex-direction: column; gap: 0.75rem; }
+  .qr-options label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text2); display: block; margin-bottom: 0.35rem; }
+  .qr-options input[type=color] {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    background: var(--surface2);
+    cursor: pointer;
+    padding: 2px;
+  }
+  .qr-options input[type=range] { width: 100%; accent-color: var(--accent2); }
+
+  /* ─── DESIGN PANEL ─── */
+  .design-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 640px) { .design-grid { grid-template-columns: 1fr; } }
+  .design-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.25rem;
+  }
+  .design-section h3 {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .design-row { margin-bottom: 0.9rem; }
+  .design-row label { font-size: 0.7rem; color: var(--text3); letter-spacing: 0.1em; display: block; margin-bottom: 0.3rem; }
+  .design-row input[type=color] {
+    width: 100%;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    border-radius: 1px;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .design-row select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 1px;
+    outline: none;
+  }
+  .design-row input[type=text] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 1px;
+    outline: none;
+  }
+
+  /* ─── MENU PAGE (PUBLIC) ─── */
+  #menu-screen {
+    display: none;
+    min-height: 100vh;
+    background: #000;
+    color: #fff;
+    font-family: var(--font-body);
+  }
+  .menu-header {
+    border-bottom: 1px solid #222;
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .menu-logo {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    letter-spacing: 0.15em;
+    line-height: 1;
+  }
+  .menu-tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #555;
+    margin-top: 0.5rem;
+  }
+  .menu-cats-nav {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0 1rem;
+    background: #050505;
+    scrollbar-width: none;
+  }
+  .menu-cats-nav::-webkit-scrollbar { display: none; }
+  .menu-cat-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #444;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 1rem 1.2rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+  .menu-cat-btn.active { color: #fff; border-bottom-color: #fff; }
+  .menu-cat-btn:hover { color: #ccc; }
+  .menu-body { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .menu-section-title {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    letter-spacing: 0.12em;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .menu-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1a1a1a;
+  }
+  .menu-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .menu-item-card {
+    background: #0d0d0d;
+    border: 1px solid #1a1a1a;
+    border-radius: 2px;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.2s;
+  }
+  .menu-item-card:hover { border-color: #333; transform: translateY(-2px); }
+  .menu-item-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    background: #111;
+  }
+  .menu-item-img-placeholder {
+    width: 100%;
+    height: 180px;
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2a2a2a;
+    font-size: 2rem;
+  }
+  .menu-item-body { padding: 1.1rem; }
+  .menu-item-name {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.4rem;
+  }
+  .menu-item-desc {
+    font-size: 0.8rem;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
+  }
+  .menu-item-price {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    color: #c8a96e;
+  }
+  .menu-footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid #111;
+    color: #333;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* util */
+  .hidden { display: none !important; }
+  .flex { display: flex; gap: 0.75rem; align-items: center; }
+  .spacer { flex: 1; }
+  .text-muted { color: var(--text2); font-size: 0.85rem; }
+  .mt1 { margin-top: 1rem; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 0.85rem; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN
+════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>MENU<br>MANAGER</h1>
+    <p>Admin Access Only</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">SIGN IN</button>
+    <p class="login-error" id="login-error">Incorrect credentials. Try again.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN
+════════════════════════════════════════════ -->
+<div id="admin-screen">
+  <nav class="admin-nav">
+    <div class="brand">MENU MGR</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPanel('items',this)">Items</button>
+      <button class="nav-tab" onclick="showPanel('categories',this)">Categories</button>
+      <button class="nav-tab" onclick="showPanel('design',this)">Design</button>
+      <button class="nav-tab" onclick="showPanel('qr',this)">QR Code</button>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-sm btn-accent" onclick="previewMenu()">Preview Menu</button>
+      <button class="btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="admin-body">
+
+    <!-- ITEMS -->
+    <div class="panel active" id="panel-items">
+      <div class="panel-title">Menu <span>Items</span></div>
+      <div class="items-toolbar">
+        <button class="btn-sm btn-accent" onclick="openItemModal()">+ Add Item</button>
+        <select id="filter-cat" onchange="renderItemsTable()">
+          <option value="">All Categories</option>
+        </select>
+        <div class="spacer"></div>
+        <span class="text-muted" id="item-count"></span>
+      </div>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="items-tbody"></tbody>
+      </table>
+      <div class="empty-state hidden" id="items-empty">No items yet — click <strong>+ Add Item</strong> to get started.</div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="panel" id="panel-categories">
+      <div class="panel-title">Menu <span>Categories</span></div>
+      <div class="flex">
+        <button class="btn-sm btn-accent" onclick="openCatModal()">+ Add Category</button>
+        <span class="text-muted" id="cat-count"></span>
+      </div>
+      <div class="cat-grid" id="cat-grid"></div>
+      <div class="empty-state hidden" id="cats-empty">No categories yet. Categories let you group items on your menu.</div>
+    </div>
+
+    <!-- DESIGN -->
+    <div class="panel" id="panel-design">
+      <div class="panel-title">Menu <span>Design</span></div>
+      <div class="design-grid">
+        <div class="design-section">
+          <h3>Business Info</h3>
+          <div class="design-row">
+            <label>Restaurant / Business Name</label>
+            <input type="text" id="d-name" value="MY RESTAURANT" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Tagline (shown under name)</label>
+            <input type="text" id="d-tagline" value="Fine dining &amp; craft cocktails" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Footer Note</label>
+            <input type="text" id="d-footer" value="Prices subject to change · Thank you for dining with us" oninput="saveDesign()">
+          </div>
+        </div>
+        <div class="design-section">
+          <h3>Colors</h3>
+          <div class="design-row">
+            <label>Menu Background</label>
+            <input type="color" id="d-bg" value="#000000" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Card Background</label>
+            <input type="color" id="d-card-bg" value="#0d0d0d" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Accent / Price Color</label>
+            <input type="color" id="d-accent" value="#c8a96e" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Header Text Color</label>
+            <input type="color" id="d-header-color" value="#ffffff" oninput="saveDesign()">
+          </div>
+          <div class="design-row">
+            <label>Border / Line Color</label>
+            <input type="color" id="d-border" value="#1a1a1a" oninput="saveDesign()">
+          </div>
+        </div>
+        <div class="design-section">
+          <h3>Layout</h3>
+          <div class="design-row">
+            <label>Item Card Layout</label>
+            <select id="d-layout" onchange="saveDesign()">
+              <option value="grid">Grid (multiple columns)</option>
+              <option value="list">List (single column)</option>
+            </select>
+          </div>
+          <div class="design-row">
+            <label>Show item images</label>
+            <select id="d-show-img" onchange="saveDesign()">
+              <option value="yes">Yes</option>
+              <option value="no">No (text only)</option>
+            </select>
+          </div>
+        </div>
+        <div class="design-section">
+          <h3>Credentials</h3>
+          <p class="text-muted" style="font-size:0.78rem;margin-bottom:1rem;">Change your admin login credentials.</p>
+          <div class="design-row">
+            <label>New Username</label>
+            <input type="text" id="new-username" placeholder="Leave blank to keep current">
+          </div>
+          <div class="design-row">
+            <label>New Password</label>
+            <input type="password" id="new-password" placeholder="Leave blank to keep current">
+          </div>
+          <button class="btn-sm btn-accent mt1" onclick="updateCredentials()">Update Credentials</button>
+          <p id="cred-msg" style="font-size:0.75rem;margin-top:0.5rem;color:var(--success);display:none;">Credentials updated!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR -->
+    <div class="panel" id="panel-qr">
+      <div class="panel-title">QR <span>Code</span></div>
+      <div class="qr-layout">
+        <div class="qr-card">
+          <h3>Preview</h3>
+          <div id="qr-display"></div>
+          <p class="text-muted" style="font-size:0.75rem;margin-bottom:1rem;">Scan to open your live menu page</p>
+          <button class="btn-sm btn-accent" onclick="downloadQR()">Download PNG</button>
+        </div>
+        <div class="qr-card">
+          <h3>Customise</h3>
+          <div class="qr-options">
+            <div>
+              <label>QR Dark Color</label>
+              <input type="color" id="qr-dark" value="#ffffff" oninput="updateQR()">
+            </div>
+            <div>
+              <label>QR Light / Background</label>
+              <input type="color" id="qr-light" value="#000000" oninput="updateQR()">
+            </div>
+            <div>
+              <label>Size: <span id="qr-size-label">256px</span></label>
+              <input type="range" id="qr-size" min="128" max="512" value="256" step="8" oninput="document.getElementById('qr-size-label').textContent=this.value+'px';updateQR()">
+            </div>
+          </div>
+          <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);">
+            <p class="text-muted" style="font-size:0.75rem;line-height:1.6;">
+              Your menu is hosted <strong style="color:var(--text)">in this file</strong>. To share publicly, save this HTML file and open it in a browser, or host it on any website. The QR code links to your menu URL.
+            </p>
+            <div class="design-row mt1">
+              <label>Custom Menu URL (optional)</label>
+              <input type="text" id="qr-url" placeholder="https://yourdomain.com/menu" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-body);font-size:0.85rem;padding:0.45rem 0.7rem;border-radius:1px;outline:none;" oninput="updateQR()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PUBLIC MENU
+════════════════════════════════════════════ -->
+<div id="menu-screen">
+  <div class="menu-header" id="menu-header">
+    <div class="menu-logo" id="menu-logo">MY RESTAURANT</div>
+    <div class="menu-tagline" id="menu-tagline">Fine dining &amp; craft cocktails</div>
+  </div>
+  <nav class="menu-cats-nav" id="menu-cats-nav"></nav>
+  <div class="menu-body" id="menu-body"></div>
+  <div class="menu-footer" id="menu-footer">Prices subject to change · Thank you for dining with us</div>
+  <div style="text-align:center;padding:1rem 0 2rem;">
+    <button class="btn-sm" onclick="showAdmin()" style="font-size:0.65rem;opacity:0.3;">Admin</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ITEM MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <h2 id="item-modal-title">Add Item</h2>
+    <div class="field">
+      <label>Item Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Grilled Salmon">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="f-desc" placeholder="Brief description of the item..."></textarea>
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <select id="f-cat"></select>
+    </div>
+    <div class="field">
+      <label>Price (e.g. 14.99)</label>
+      <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <div class="field">
+      <label>Photo</label>
+      <div class="img-upload-area" id="upload-area">
+        <input type="file" id="f-img" accept="image/*" onchange="handleImgUpload(event)">
+        <img id="f-img-preview" class="img-upload-preview hidden" src="" alt="">
+        <p id="upload-hint">Click to upload image</p>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeItemModal()">Cancel</button>
+      <button class="btn-sm btn-accent" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAT MODAL -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <h2>Add Category</h2>
+    <div class="field">
+      <label>Category Name</label>
+      <input type="text" id="f-cat-name" placeholder="e.g. Starters, Mains, Desserts...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeCatModal()">Cancel</button>
+      <button class="btn-sm btn-accent" onclick="saveCat()">Save Category</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let state = loadState();
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('menu_state');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return {
+    credentials: { user: 'admin', pass: 'menu2024' },
+    categories: ['Starters', 'Mains', 'Desserts', 'Drinks'],
+    items: [
+      { id: 1, name: 'Burrata & Heirloom Tomatoes', desc: 'Creamy burrata with seasonal heirlooms, basil oil, sea salt', cat: 'Starters', price: 14, img: '' },
+      { id: 2, name: 'Wagyu Beef Tartare', desc: 'Hand-cut A5 wagyu, truffle aioli, crispy capers, egg yolk', cat: 'Starters', price: 22, img: '' },
+      { id: 3, name: 'Pan Seared Duck Breast', desc: 'Spiced orange glaze, wilted greens, pomme purée', cat: 'Mains', price: 38, img: '' },
+      { id: 4, name: 'Grilled Black Cod', desc: 'Miso marinated, bok choy, yuzu beurre blanc', cat: 'Mains', price: 42, img: '' },
+      { id: 5, name: 'Chocolate Fondant', desc: 'Dark 70% valrhona, vanilla ice cream, hazelnut praline', cat: 'Desserts', price: 12, img: '' },
+      { id: 6, name: 'Craft Negroni', desc: 'Campari, sweet vermouth, gin, orange twist', cat: 'Drinks', price: 16, img: '' },
+    ],
+    design: {
+      name: 'MY RESTAURANT',
+      tagline: 'Fine dining & craft cocktails',
+      footer: 'Prices subject to change · Thank you for dining with us',
+      bg: '#000000',
+      cardBg: '#0d0d0d',
+      accent: '#c8a96e',
+      headerColor: '#ffffff',
+      border: '#1a1a1a',
+      layout: 'grid',
+      showImg: 'yes'
+    },
+    qr: { dark: '#ffffff', light: '#000000', size: 256, url: '' },
+    nextId: 7
+  };
+}
+
+function saveState() {
+  try { localStorage.setItem('menu_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (u === state.credentials.user && p === state.credentials.pass) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    err.style.display = 'none';
+    initAdmin();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function showAdmin() {
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function updateCredentials() {
+  const u = document.getElementById('new-username').value.trim();
+  const p = document.getElementById('new-password').value;
+  if (u) state.credentials.user = u;
+  if (p) state.credentials.pass = p;
+  saveState();
+  document.getElementById('new-username').value = '';
+  document.getElementById('new-password').value = '';
+  const msg = document.getElementById('cred-msg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 2500);
+}
+
+// ═══════════════════════════════════════════════
+//  PANELS
+// ═══════════════════════════════════════════════
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'items') renderItemsTable();
+  if (name === 'categories') renderCatsGrid();
+  if (name === 'qr') { loadDesignInputs(); updateQR(); }
+  if (name === 'design') loadDesignInputs();
+}
+
+// ═══════════════════════════════════════════════
+//  ITEMS
+// ═══════════════════════════════════════════════
+function renderItemsTable() {
+  const filterCat = document.getElementById('filter-cat').value;
+  const tbody = document.getElementById('items-tbody');
+  const items = filterCat ? state.items.filter(i => i.cat === filterCat) : state.items;
+  document.getElementById('item-count').textContent = items.length + ' item' + (items.length !== 1 ? 's' : '');
+  const empty = document.getElementById('items-empty');
+  if (items.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  tbody.innerHTML = items.map(item => `
+    <tr>
+      <td>${item.img ? `<img class="item-img-preview" src="${item.img}" alt="">` : `<div class="img-placeholder">NO IMG</div>`}</td>
+      <td style="font-weight:500;max-width:160px">${esc(item.name)}</td>
+      <td style="color:var(--text2);font-size:0.82rem;max-width:200px;">${esc(item.desc||'')}</td>
+      <td><span class="cat-badge">${esc(item.cat)}</span></td>
+      <td style="font-family:var(--font-display);letter-spacing:0.05em;color:var(--accent);">$${Number(item.price).toFixed(2)}</td>
+      <td class="td-actions">
+        <button class="btn-sm" onclick="openItemModal(${item.id})">Edit</button>
+        <button class="btn-sm btn-danger" onclick="deleteItem(${item.id})">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+function refreshCatDropdowns() {
+  const opts = state.categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  document.getElementById('filter-cat').innerHTML = '<option value="">All Categories</option>' + opts;
+  document.getElementById('f-cat').innerHTML = opts;
+}
+
+let editingItemId = null;
+let pendingImgData = '';
+
+function openItemModal(id) {
+  editingItemId = id || null;
+  pendingImgData = '';
+  refreshCatDropdowns();
+  if (id) {
+    const item = state.items.find(i => i.id === id);
+    document.getElementById('item-modal-title').textContent = 'Edit Item';
+    document.getElementById('f-name').value = item.name;
+    document.getElementById('f-desc').value = item.desc || '';
+    document.getElementById('f-cat').value = item.cat;
+    document.getElementById('f-price').value = item.price;
+    pendingImgData = item.img || '';
+    if (item.img) {
+      document.getElementById('f-img-preview').src = item.img;
+      document.getElementById('f-img-preview').classList.remove('hidden');
+      document.getElementById('upload-hint').textContent = 'Click to change';
+    } else {
+      document.getElementById('f-img-preview').classList.add('hidden');
+      document.getElementById('upload-hint').textContent = 'Click to upload image';
+    }
+  } else {
+    document.getElementById('item-modal-title').textContent = 'Add Item';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-price').value = '';
+    document.getElementById('f-img-preview').classList.add('hidden');
+    document.getElementById('upload-hint').textContent = 'Click to upload image';
+  }
+  document.getElementById('item-modal').classList.add('open');
+}
+
+function closeItemModal() { document.getElementById('item-modal').classList.remove('open'); }
+
+function handleImgUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingImgData = ev.target.result;
+    const prev = document.getElementById('f-img-preview');
+    prev.src = pendingImgData;
+    prev.classList.remove('hidden');
+    document.getElementById('upload-hint').textContent = 'Click to change';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveItem() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Please enter an item name.'); return; }
+  const cat = document.getElementById('f-cat').value;
+  const price = parseFloat(document.getElementById('f-price').value) || 0;
+  const desc = document.getElementById('f-desc').value.trim();
+  if (editingItemId) {
+    const item = state.items.find(i => i.id === editingItemId);
+    Object.assign(item, { name, desc, cat, price, img: pendingImgData });
+  } else {
+    state.items.push({ id: state.nextId++, name, desc, cat, price, img: pendingImgData });
+  }
+  saveState();
+  closeItemModal();
+  renderItemsTable();
+}
+
+function deleteItem(id) {
+  if (!confirm('Delete this item?')) return;
+  state.items = state.items.filter(i => i.id !== id);
+  saveState();
+  renderItemsTable();
+}
+
+// ═══════════════════════════════════════════════
+//  CATEGORIES
+// ═══════════════════════════════════════════════
+function renderCatsGrid() {
+  const grid = document.getElementById('cat-grid');
+  const empty = document.getElementById('cats-empty');
+  document.getElementById('cat-count').textContent = state.categories.length + ' categories';
+  if (!state.categories.length) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = state.categories.map((c,i) => {
+    const count = state.items.filter(it => it.cat === c).length;
+    return `<div class="cat-card">
+      <div>
+        <div class="cat-card-name">${esc(c)}</div>
+        <div class="cat-count">${count} item${count!==1?'s':''}</div>
+      </div>
+      <div class="td-actions">
+        <button class="btn-sm btn-danger" onclick="deleteCat(${i})">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCatModal() { document.getElementById('f-cat-name').value = ''; document.getElementById('cat-modal').classList.add('open'); }
+function closeCatModal() { document.getElementById('cat-modal').classList.remove('open'); }
+
+function saveCat() {
+  const name = document.getElementById('f-cat-name').value.trim();
+  if (!name) { alert('Enter a category name.'); return; }
+  if (state.categories.includes(name)) { alert('Category already exists.'); return; }
+  state.categories.push(name);
+  saveState();
+  closeCatModal();
+  renderCatsGrid();
+}
+
+function deleteCat(i) {
+  const name = state.categories[i];
+  const count = state.items.filter(it => it.cat === name).length;
+  if (count && !confirm(`"${name}" has ${count} item(s). Deleting this category will leave those items uncategorized. Continue?`)) return;
+  state.categories.splice(i, 1);
+  saveState();
+  renderCatsGrid();
+}
+
+// ═══════════════════════════════════════════════
+//  DESIGN
+// ═══════════════════════════════════════════════
+function loadDesignInputs() {
+  const d = state.design;
+  document.getElementById('d-name').value = d.name;
+  document.getElementById('d-tagline').value = d.tagline;
+  document.getElementById('d-footer').value = d.footer;
+  document.getElementById('d-bg').value = d.bg;
+  document.getElementById('d-card-bg').value = d.cardBg;
+  document.getElementById('d-accent').value = d.accent;
+  document.getElementById('d-header-color').value = d.headerColor;
+  document.getElementById('d-border').value = d.border;
+  document.getElementById('d-layout').value = d.layout;
+  document.getElementById('d-show-img').value = d.showImg;
+}
+
+function saveDesign() {
+  state.design = {
+    name: document.getElementById('d-name').value,
+    tagline: document.getElementById('d-tagline').value,
+    footer: document.getElementById('d-footer').value,
+    bg: document.getElementById('d-bg').value,
+    cardBg: document.getElementById('d-card-bg').value,
+    accent: document.getElementById('d-accent').value,
+    headerColor: document.getElementById('d-header-color').value,
+    border: document.getElementById('d-border').value,
+    layout: document.getElementById('d-layout').value,
+    showImg: document.getElementById('d-show-img').value
+  };
+  saveState();
+}
+
+// ═══════════════════════════════════════════════
+//  QR CODE
+// ═══════════════════════════════════════════════
+let qrInstance = null;
+function updateQR() {
+  const dark = document.getElementById('qr-dark').value;
+  const light = document.getElementById('qr-light').value;
+  const size = parseInt(document.getElementById('qr-size').value);
+  const customUrl = document.getElementById('qr-url').value.trim();
+  const url = customUrl || window.location.href.split('#')[0] + '#menu';
+  state.qr = { dark, light, size, url: customUrl };
+  saveState();
+  const el = document.getElementById('qr-display');
+  el.innerHTML = '';
+  el.style.background = light;
+  qrInstance = new QRCode(el, {
+    text: url,
+    width: size,
+    height: size,
+    colorDark: dark,
+    colorLight: light,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-display canvas');
+  if (!canvas) { alert('QR code not rendered yet.'); return; }
+  const link = document.createElement('a');
+  link.download = 'menu-qr.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ═══════════════════════════════════════════════
+//  MENU PAGE
+// ═══════════════════════════════════════════════
+function previewMenu() {
+  buildMenuPage();
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('menu-screen').style.display = 'block';
+}
+
+function buildMenuPage() {
+  const d = state.design;
+  const ms = document.getElementById('menu-screen');
+  ms.style.background = d.bg;
+  ms.style.color = d.headerColor;
+  document.getElementById('menu-header').style.borderBottomColor = d.border;
+  document.getElementById('menu-logo').textContent = d.name;
+  document.getElementById('menu-logo').style.color = d.headerColor;
+  document.getElementById('menu-tagline').textContent = d.tagline;
+  document.getElementById('menu-footer').textContent = d.footer;
+  document.getElementById('menu-footer').style.borderTopColor = d.border;
+
+  // Get unique cats that have items
+  const activeCats = state.categories.filter(c => state.items.some(i => i.cat === c));
+  const uncatItems = state.items.filter(i => !state.categories.includes(i.cat));
+  if (uncatItems.length) activeCats.push('Other');
+
+  // Nav
+  const nav = document.getElementById('menu-cats-nav');
+  nav.innerHTML = '';
+  nav.style.borderBottomColor = d.border;
+  if (activeCats.length > 1) {
+    activeCats.forEach((c, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'menu-cat-btn' + (idx === 0 ? ' active' : '');
+      btn.textContent = c;
+      btn.style.color = idx === 0 ? d.headerColor : '';
+      btn.style.borderBottomColor = idx === 0 ? d.headerColor : '';
+      btn.onclick = () => {
+        document.querySelectorAll('.menu-cat-btn').forEach(b => { b.classList.remove('active'); b.style.color=''; b.style.borderBottomColor=''; });
+        btn.classList.add('active');
+        btn.style.color = d.headerColor;
+        btn.style.borderBottomColor = d.headerColor;
+        const sec = document.getElementById('section-' + c.replace(/\s/g,'_'));
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      nav.appendChild(btn);
+    });
+  }
+
+  // Body
+  const body = document.getElementById('menu-body');
+  body.innerHTML = '';
+  const isGrid = d.layout !== 'list';
+  const showImg = d.showImg !== 'no';
+
+  activeCats.forEach(cat => {
+    const items = cat === 'Other'
+      ? state.items.filter(i => !state.categories.includes(i.cat))
+      : state.items.filter(i => i.cat === cat);
+    if (!items.length) return;
+
+    const secId = 'section-' + cat.replace(/\s/g,'_');
+    const sec = document.createElement('div');
+    sec.id = secId;
+
+    const title = document.createElement('div');
+    title.className = 'menu-section-title';
+    title.style.color = d.headerColor;
+    title.style.borderBottomColor = d.border;
+    title.style.setProperty('--after-bg', d.border);
+    title.textContent = cat;
+    sec.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = isGrid ? 'menu-items-grid' : 'menu-items-grid';
+    if (!isGrid) grid.style.gridTemplateColumns = '1fr';
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'menu-item-card';
+      card.style.background = d.cardBg;
+      card.style.borderColor = d.border;
+
+      let imgHtml = '';
+      if (showImg) {
+        if (item.img) {
+          imgHtml = `<img class="menu-item-img" src="${item.img}" alt="${esc(item.name)}">`;
+        } else {
+          imgHtml = `<div class="menu-item-img-placeholder" style="border-bottom:1px solid ${d.border};background:${d.cardBg};">&#9671;</div>`;
+        }
+      }
+
+      card.innerHTML = imgHtml + `
+        <div class="menu-item-body">
+          <div class="menu-item-name" style="color:${d.headerColor};">${esc(item.name)}</div>
+          ${item.desc ? `<div class="menu-item-desc">${esc(item.desc)}</div>` : ''}
+          <div class="menu-item-price" style="color:${d.accent};">$${Number(item.price).toFixed(2)}</div>
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    sec.appendChild(grid);
+    body.appendChild(sec);
+  });
+
+  if (!activeCats.length) {
+    body.innerHTML = '<div style="text-align:center;padding:4rem;color:#333;font-size:0.85rem;letter-spacing:0.2em;text-transform:uppercase;">No menu items yet</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+function initAdmin() {
+  refreshCatDropdowns();
+  renderItemsTable();
+  loadDesignInputs();
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Handle #menu hash for QR code direct open
+if (window.location.hash === '#menu') {
+  buildMenuPage();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('menu-screen').style.display = 'block';
+}
+</script>
+</body>
+</html>
